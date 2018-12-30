@@ -1,0 +1,133 @@
+/*!
+ * Start Bootstrap - Thumbnail Gallery (https://startbootstrap.com/template-overviews/thumbnail-gallery)
+ * Copyright 2013-2017 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-thumbnail-gallery/blob/master/LICENSE)
+ */
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+p {
+  font-size: 14px;
+}
+
+#about-container {
+	margin-top: 56px;
+  padding-top: 40px;
+}
+
+#grid-container {
+  margin-top: 56px;
+  padding-top: 40px;
+}
+
+.row {
+	margin-left: -4px;
+	margin-right: -4px;
+}
+
+#map-large {
+	height: 100vh;
+}
+
+footer {
+	position: fixed;
+	width: 100%;
+  	bottom: 0;
+  	background-color: rgba(240, 240, 240, 0.4) !important;
+}
+
+#dropdownMenu1 {
+  color: white;
+  background: #2e93a5;
+  border: 1px solid white;
+  font-weight: 100;
+}
+
+.dropdown-menu {
+  height: auto;
+  max-height: 500px;
+  overflow-x: hidden;
+  font-weight: 100px;
+  z-index: 2000;
+}
+
+.dropdown-header {
+/*  font-family:"Arial Black";*/
+  color: black;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: bold;
+}
+
+.fixed-bottom {
+  z-index: 1000;
+}
+
+#table-container {
+  font-size: 10px;
+  width: 100%;
+  position: relative;
+}
+
+.dataTables_filter {
+  color: white !important;
+}
+
+.dataTables_info {
+  color: white !important;
+}
+
+table.dataTable thead th, table.dataTable thead td {
+    border-bottom: 1px solid #fff;
+}
+
+.dataTables_wrapper.no-footer .dataTables_scrollBody {
+    border-bottom: 1px solid #fff;
+}
+
+table.dataTable.row-border tbody th, table.dataTable.row-border tbody td, table.dataTable.display tbody th, table.dataTable.display tbody td {
+  border-top: 0px solid #ddd;
+}
+
+th.sorting:hover, th.sorting_asc:hover {
+  background-color: #3f464d;
+}
+
+/*this is for the row when it's selected*/
+table.dataTable.stripe tbody > tr:hover, table.dataTable.stripe tbody > tr:hover, table.dataTable.display tbody > tr:hover, table.dataTable.display tbody > tr:hover {
+    background-color: #288596 !important;
+}
+
+/*this is for the cell of the sorted column when it's selected*/
+table.dataTable.display tbody > tr:hover > .sorting_1, table.dataTable.order-column.stripe tbody > tr:hover > .sorting_1 {
+    background-color: #2e93a5 !important;
+}
+
+/*this is for the row when it's selected*/
+table.dataTable.stripe tbody > tr.selected, table.dataTable.stripe tbody > tr > .selected, table.dataTable.display tbody > tr.selected, table.dataTable.display tbody > tr > .selected {
+    background-color: #346169 !important;
+}
+
+/*this is for the cell of the sorted column when it's selected*/
+table.dataTable.display tbody > tr.selected > .sorting_1, table.dataTable.order-column.stripe tbody > tr.selected > .sorting_1 {
+    background-color: #3c6a71 !important;
+}
+
+table.dataTable tbody tr.even {
+  background-color: #33373c;
+}
+
+table.dataTable.display tbody tr.odd {
+  background-color: #2d3135;
+}
+
+table.dataTable.display tbody tr.even > .sorting_1, table.dataTable.order-column.stripe tbody tr.even > .sorting_1 {
+  background-color: #353a40;
+}
+
+table.dataTable.display tbody tr.odd > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd > .sorting_1 {
+  background-color: #303438;
+}

@@ -1,0 +1,72 @@
+<!-- Navigation -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top px-0" ng-controller="HeaderCtrl">
+  <div class="container">
+    <a class="navbar-brand" href="#">Infrastructured</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsiveTop" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsiveTop">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item"><a class="nav-link" ng-click="view = grid" href="#">Grid</a>
+        </li>
+        <li class="nav-item"><a class="nav-link" ng-click="view = map" href="#">Map</a>
+        </li>
+<!--         <li class="nav-item"><a class="nav-link" href="#/about">About</a>
+        </li> -->
+      </ul>
+    </div>
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {{datasetName}}
+        </button>
+        <div class="dropdown-menu  dropdown-menu-right" aria-labelledby="dropdownMenu1">
+
+          <!-- agriculture -->
+          <h6 class="dropdown-header">Agriculture</h6>
+
+          <button ng-click="chooseDataset('State Fairgrounds')" class="dropdown-item" type="button">State Fairgrounds</button>
+
+          <button ng-click="chooseDataset('Poultry Slaughtering and Processing Facilities')" class="dropdown-item" type="button">Poultry Slaughtering and Processing Facilities</button>
+
+          <!-- borders -->
+          <h6 class="dropdown-header">Borders</h6>
+          <button ng-click="chooseDataset('Canada and Mexico Border Crossings')" class="dropdown-item" type="button">Canada and Mexico Border Crossings</button>
+          <button ng-click="chooseDataset('US Ports of Entry')" class="dropdown-item" type="button">US Ports of Entry</button>
+
+          <!-- power plants -->
+          <h6 class="dropdown-header">Power Plants</h6>
+          <button ng-click="chooseDataset('Natural Gas')" class="dropdown-item" type="button">Natural Gas</button>
+          <button ng-click="chooseDataset('Coal')" class="dropdown-item" type="button">Coal</button>
+          <button ng-click="chooseDataset('Solid Waste')" class="dropdown-item" type="button">Solid Waste</button>
+          <button ng-click="chooseDataset('Wood Waste')" class="dropdown-item" type="button">Wood Waste</button>
+          <button ng-click="chooseDataset('Hydroelectric')" class="dropdown-item" type="button">Hydroelectric</button>
+          <button ng-click="chooseDataset('Nuclear')" class="dropdown-item" type="button">Nuclear</button>
+          <button ng-click="chooseDataset('Solar')" class="dropdown-item" type="button">Solar</button>
+          <button ng-click="chooseDataset('Geothermal')" class="dropdown-item" type="button">Geothermal</button>
+          <button ng-click="chooseDataset('Wind')" class="dropdown-item" type="button">Wind</button>
+
+          <!-- energy -->
+          <h6 class="dropdown-header">Energy</h6>
+          <button ng-click="chooseDataset('Petroleum Terminals')" class="dropdown-item" type="button">Petroleum Terminals</button>
+          <button ng-click="chooseDataset('Oil Refineries')" class="dropdown-item" type="button">Oil Refineries</button>
+
+          <!-- government -->
+          <h6 class="dropdown-header">Government</h6>
+          <button ng-click="chooseDataset('Weather Radar Stations')" class="dropdown-item" type="button">Weather Radar Stations</button>
+          <button ng-click="chooseDataset('State Capitol Buildings')" class="dropdown-item" type="button">State Capitol Buildings</button>
+
+          <!-- mining -->
+          <h6 class="dropdown-header">Mining</h6>
+          <button ng-click="chooseDataset('Ferrous Metal Mining')" class="dropdown-item" type="button">Ferrous Metal Mining</button>
+          <button ng-click="chooseDataset('Sand and Gravel Operations')" class="dropdown-item" type="button">Sand and Gravel Operations</button>
+
+          <!-- public venues -->
+          <h6 class="dropdown-header">Public Venues</h6>
+          <button  ng-click="chooseDataset('Major Sports Venues')" class="dropdown-item" type="button">Major Sports Venues</button>
+          <button  ng-click="chooseDataset('Mobile Home Parks')" class="dropdown-item" type="button">Mobile Home Parks</button>
+          <button  ng-click="chooseDataset('Cruise Line Terminals')" class="dropdown-item" type="button">Cruise Line Terminals</button>
+        </div>
+      </div>
+
+  </div>
+</nav>
