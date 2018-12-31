@@ -227,8 +227,8 @@ const mapLarge = Vue.component('map-large', {
 
         // zoom in on map when a marker is clicked
         markers[i].on('click', function () {
-          self.$root.$data.selectedFeature = i.toString()
-          self.map.setView([coords[1],coords[0]], 14)
+          self.$root.$data.selectedFeature = this._popup._content
+          self.map.setView(this.getLatLng(), 14)
         });
 
         this.map.addLayer(markers[i])
