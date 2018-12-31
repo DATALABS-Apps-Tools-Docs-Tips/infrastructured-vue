@@ -5,7 +5,13 @@
 
 // Define a new component called button-counter
 Vue.component('header-component', {
-  template: `<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top px-0">
+  props: {
+    categories: Array,
+    datasets: Object,
+    current: String
+  },
+  template: `
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top px-0">
    <div class="container-fluid">
      <a class="navbar-brand" href="#">Infrastructured</a>
      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsiveTop" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -13,67 +19,117 @@ Vue.component('header-component', {
      </button>
      <div class="collapse navbar-collapse" id="navbarResponsiveTop">
        <ul class="navbar-nav ml-auto">
-         <li class="nav-item"><router-link to="/grid" class="nav-link">Grid</router-link>
-         </li>
-         <li class="nav-item"><router-link to="/map" class="nav-link">Map</router-link>
-         </li>
+         <li v-on:click="toggleMap(false)" class="nav-item nav-link">Grid</li>
+         <li v-on:click="toggleMap(true)" class="nav-item nav-link">Map</li>
        </ul>
      </div>
-     <dropdown-menu>
+     <dropdown-menu
+       v-bind:categories="categories"
+       v-bind:datasets="datasets"
+       v-bind:current="current">
      </dropdown-menu>
    </div>
-  </nav>`
-})
+  </nav>
+  `,
+  methods: {
+    toggleMap(boolean) {
+      this.$root.$data.mapVisible = boolean
+    }
+  }
+}),
 
 // Define the dropdown component
 Vue.component('dropdown-menu', {
-  template: `<div class="dropdown">
+  props: {
+    categories: Array,
+    datasets: Object,
+    current: String
+  },
+  template: `
+    <div class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-     {{ this.$root.$data.currentDataset }}
+     {{ current }}
     </button>
     <div class="dropdown-menu  dropdown-menu-right" aria-labelledby="dropdownMenu1">
-        <div v-for='category in this.$root.$data.categories'>
-          <h6 class="dropdown-header">{{ category.text }}</h6>
-          <button v-for="dataset in category.datasets" v-on:click="chooseData(dataset)" class="dropdown-item" type="button">{{ dataset.name }}</button>
+        <div v-for='(value, key) in categorize'>
+          <h6 class="dropdown-header">{{ key }}</h6>
+          <button v-for="dataset in value" v-on:click="chooseData(dataset)" class="dropdown-item" type="button">{{ dataset }}</button>
         </div>
     </div>
-  </div>`,
+  </div>
+  `,
+  computed: {
+    categorize: function() {
+      var categorized = {}
+      for ( var i = 0; i < this.categories.length; i++ ) {
+        category = this.categories[i]
+        categorized[category] = []
+        for ( var key in this.datasets ) {
+          if ( this.datasets[key].category === category ) {
+            categorized[category].push(key)
+          }
+        }
+      }
+      return categorized
+    }
+  },
   methods: {
     chooseData(dataset) {
       // this.$root.clearBox('grid-container')
-      this.$root.$data.currentDataset = dataset.name
-      this.$root.$data.json = this.$root.loadData(dataset.name)
+      this.current = dataset
+      this.$root.$data.features = this.$root.loadData(dataset)
     }
   }
 })
 
 // Define the data table component
-Vue.component('data-table', {
-  props: ['features'],
+Vue.component('footer-component', {
+  props: {
+    'features': Array,
+    'hovered': String,
+    'info': Object
+  },
   template:`
   <nav class="navbar navbar-dark bg-dark fixed-bottom px-0">
     <div class="container-fluid">
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#tableCollapse" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="text-light">Table</span>
-      </button>
-      <div class="collapse navbar-collapse text-light w-100" id="tableCollapse" ref="vuemodal">
-        <div id="table-container">
-          <table id="table" class="display nowrap" style="width:100%">
-            <thead>
-              <tr>
-                <th v-for="(value, key, index) in features[0].properties" :key="index" class="pl-2 pr-4">{{ key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(value, key, index) in features" :key="index">
-                <td v-for="(v, k, ind) in value.properties" :key="ind" class="px-2">{{ v }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="text-secondary">
+        <span><p class="m-0"><strong>{{ info.name }}</strong> {{ info.location }}</p></span>
       </div>
+      <button class="btn btn-outline-secondary btn-sm" type="button" data-toggle="collapse" data-target="#tableCollapse" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span>Table</span>
+      </button>
     </div>
+    <data-table
+      v-bind:features="features"
+      v-bind:hovered="hovered">
+    </data-table>
   </nav>
+  `
+})
+
+// Define the data table component
+Vue.component('data-table', {
+  props: {
+    'features': Array,
+    'hovered': String
+  },
+  template:`
+  <div class="collapse navbar-collapse text-secondary w-100" id="tableCollapse" ref="tableCollapse">
+    <div id="table-container">
+      <table id="table" class="display nowrap" style="width:100%">
+        <thead>
+          <tr>
+            <th v-for="(value, key, index) in features[0].properties" :key="index" class="pl-2 pr-4">{{ key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(value, key, index) in features" :key="index">
+            <td v-for="(v, k, ind) in value.properties" :key="ind" class="px-2">{{ v }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   `,
   data: function () {
     return {
@@ -84,17 +140,36 @@ Vue.component('data-table', {
     adjustColumns() {
       this.table.columns.adjust()
       console.log('table headers adjusted')
-    }
+    },
+    mouseOver() {
+      this.$root.$data.hoveredFeature = this.index.toString()
+    },
   },
   mounted: function () {
     this.table = $('#table').DataTable({
-      "scrollY": 200,
-      "scrollX": true,
-      "paging": false
+      'scrollY': 200,
+      'scrollX': true,
+      'paging': false,
+      'language': {
+        'search': '',
+        'searchPlaceholder': 'search'
+      }
     })
     console.log('table created')
     // adjust the header widths when the collapse element is opened
-    $(this.$refs.vuemodal).on('shown.bs.collapse', this.adjustColumns)
+    $(this.$refs.tableCollapse).on('shown.bs.collapse', this.adjustColumns)
+
+    var table = this.table
+    var self = this.$root.$data
+
+    // when hover over row display on footer
+    $('#table tbody').on('mouseover', 'tr', function () {
+      self.hoveredFeature = table.row( this ).index().toString()
+    });
+
+    $('#table tbody').on('mouseout', 'tr', function () {
+      self.hoveredFeature = null
+    });
   },
   beforeUpdate: function () {
     $('#table').DataTable().destroy()
@@ -109,11 +184,17 @@ Vue.component('data-table', {
   }
 })
 
-// Define the large map component
+// LARGE MAP
 const mapLarge = Vue.component('map-large', {
-  props: ['json'],
+  props: {
+    'features': Array,
+    'current': String,
+    'datasets': Object,
+    'center': Object,
+    'zoom': Number
+  },
   template: `
-    <div id="map-large" class="map-container">{{ json.features.length }}</div>
+    <div id="map-large" class="map-container">{{ features.length }}</div>
   `,
   data: function () {
     return {
@@ -122,12 +203,35 @@ const mapLarge = Vue.component('map-large', {
     }
   },
   methods: {
-    addMarkers(json) {
-      for (i = 0; i < json.features.length; i++) {
-        var coords = json.features[i].geometry.coordinates
-        var marker = L.marker([coords[1], coords[0]]).bindPopup(json.features[i].properties.NAME)
-        this.markers.push(marker)
-        this.map.addLayer(this.markers[i])
+    addMarkers(features) {
+      var markers = {}
+      for (i = 0; i < features.length; i++) {
+        var coords = features[i].geometry.coordinates
+        markers[i] = L.marker([coords[1], coords[0]])
+          // add a popup
+          .bindPopup(i.toString())
+
+        var self = this;
+
+        // make popup visible on mouseover
+        markers[i].on('mouseover', function () {
+            // this.openPopup();
+            self.$root.$data.hoveredFeature = this._popup._content
+        });
+        markers[i].on('mouseout', function () {
+            // this.closePopup();
+            self.$root.$data.hoveredFeature = null
+        });
+
+        var map = this
+
+        // zoom in on map when a marker is clicked
+        markers[i].on('click', function () {
+          self.$root.$data.selectedFeature = i.toString()
+          self.map.setView([coords[1],coords[0]], 14)
+        });
+
+        this.map.addLayer(markers[i])
       }
     },
     removeMarkers() {
@@ -138,28 +242,38 @@ const mapLarge = Vue.component('map-large', {
     }
   },
   mounted: function () {
-      this.map = this.$root.createMap("map-large", [39, -98], 4, true)
+      this.map = this.$root.createMap("map-large", [this.center['lat'],this.center['lng']], this.zoom, true)
       console.log('map created')
-      this.addMarkers (this.json)
+
+      this.addMarkers (this.features)
       console.log('markers added')
+
+      var self = this;
+
+      this.map.on('moveend', function(){
+        self.$root.$data.mapCenter = L.latLng(this.getCenter());
+        self.$root.$data.mapZoom = this.getZoom();
+      });
   },
   updated: function () {
-      console.log(this.map)
       this.removeMarkers ()
-      this.addMarkers (this.json)
+
+      this.addMarkers (this.features)
       console.log('markers updated')
   }
 })
 
-// Define the map grid component
+// GRID
 const mapGrid = Vue.component('map-grid', {
-  props: ['json'],
+  props: ['features'],
   template:`
     <div class="container">
       <div id="grid-container" class="row text-center text-lg-left pb-5 mb-5">
-          <map-cell v-for="(value, index) in json.features"
-            v-bind:value="value"
-            v-bind:index="index">
+          <map-cell
+            v-for="i in 50"
+            v-bind:key="features[i].geometry.coordinates[0]"
+            v-bind:feature="features[i]"
+            v-bind:index="i">
           </map-cell>
       </div>
     </div>`,
@@ -172,7 +286,7 @@ const mapGrid = Vue.component('map-grid', {
       // $(window).scroll(scrollHandler);
   },
   beforeUpdate: function () {
-    this.$root.clearBox('grid-container')
+    // this.$root.clearBox('grid-container')
     console.log('map grid cleared')
   },
   updated: function () {
@@ -180,29 +294,40 @@ const mapGrid = Vue.component('map-grid', {
   }
 })
 
-// Define the map cell component
+// MAP CELL
 Vue.component('map-cell', {
-  props: ['value','index'],
+  props: {
+    'feature': Object,
+    'index': Number
+  },
   template:`
   <div class="col-lg-3 col-md-4 col-xs-6 p-1">
-    <div v-on:click="" :id="'map_' + index" class="d-block" style="padding-top: 100%; cursor: pointer;">
-      <div :id="'info_' + index" class="info position-absolute" style="z-index:1000;">
-        <span class="info_name">{{ value.properties.NAME }}</span>
-        <span class="info_location">{{ index }}</span>
-      </div>
-    </div>
+    <div v-on:click="loadMap()" v-bind:id="'map_' + index" @mouseover="mouseOver()" @mouseout="mouseOut()" class="d-block" style="padding-top: 100%; cursor: pointer;"></div>
   </div>
   `,
+  methods: {
+    loadMap() {
+      this.$root.$data.mapCenter = { lat: this.feature.geometry.coordinates[1], lng: this.feature.geometry.coordinates[0] }
+      this.$root.$data.mapZoom = 14
+      this.$root.$data.mapVisible = true
+    },
+    mouseOver() {
+      this.$root.$data.hoveredFeature = this.index.toString()
+    },
+    mouseOut() {
+      this.$root.$data.hoveredFeature = null
+    }
+  },
   mounted: function () {
-    this.$root.createMap("map_" + this.index, [this.value.geometry.coordinates[1],this.value.geometry.coordinates[0]], 14, false)
+    this.$root.createMap("map_" + this.index, [this.feature.geometry.coordinates[1],this.feature.geometry.coordinates[0]], 14, false)
   }
 })
 
-// Router
+// ROUTER
 const router = new VueRouter({
   routes: [
-    { path: '/map', component: mapLarge, props: true },
-    { path: '/grid', component: mapGrid, props: true }
+    // { path: '/map', component: mapLarge, props: true },
+    // { path: '/grid', component: mapGrid, props: true }
   ]
 })
 
@@ -210,30 +335,40 @@ const router = new VueRouter({
 const app = new Vue({
   router,
   data: {
-    currentDataset: "State Fairgrounds",
-    categories: [
-      { text: 'Agriculture', 'datasets': [
-        { name: 'State Fairgrounds' },
-        { name: 'Poultry Slaughtering and Processing Facilities' }
-      ]},
-      { text: 'Borders', 'datasets': [
-        { name: 'Canada and Mexico Border Crossings' },
-        { name: 'US Ports of Entry' }
-      ]},
-    ],
-    json: null
+    mapVisible: true,
+    mapCenter: { lat: 39, lng: -98 },
+    mapZoom: 4,
+    categories: INFRASTRUCTURED.categories,
+    datasets: INFRASTRUCTURED.datasets,
+    currentDataset: "Oil Refineries",
+    features: {},
+    hoveredFeature: null,
+    selectedFeature: null
+  },
+  computed: {
+    // get the name and location of the feature that's hovered over
+    hoveredInfo: function () {
+      info = {}
+      if (this.hoveredFeature !== null) {
+        info.name = this.features[this.hoveredFeature].properties[this.datasets[this.currentDataset].nameField]
+        city = this.features[this.hoveredFeature].properties[this.datasets[this.currentDataset].cityField]
+        state = this.features[this.hoveredFeature].properties[this.datasets[this.currentDataset].stateField]
+        info.location = city + ',  ' + state
+      } else {
+        info.name = ""
+        info.location = ""
+      }
+      return info
+    }
   },
   methods: {
-    clearBox(elementID)
-      {
-        document.getElementById(elementID).innerHTML = "";
-      },
+    // general function for creating a map
     createMap(div, coords, zoom, interactive) {
       var map = L.map(div,{
         center: coords,
         zoom: zoom,
         zoomControl: false,
-        attributionControl: interactive,
+        attributionControl: false,
         dragging: interactive,
         touchZoom: interactive,
         doubleClickZoom: interactive,
@@ -246,12 +381,13 @@ const app = new Vue({
 
     // general function that loads data
     loadData(datasetName) {
+      console.log("starting json load")
 
-      var json;
+      var features;
 
-      var my_url = dataDictionary[datasetName].url
+      var my_url = this.datasets[datasetName].url
 
-      json = (function () {
+      features = (function () {
         var json = null;
         $.ajax({
           'async': false,
@@ -262,14 +398,15 @@ const app = new Vue({
               json = data;
           }
         });
-        return json;
-      })();
 
-      return json
+        return json.features;
+      })();
+      console.log("json loaded")
+      return features
     }
   },
   created: function () {
-    this.json = this.loadData(this.currentDataset)
+    this.features = this.loadData(this.currentDataset)
   }
 }).$mount('#app')
 

@@ -19,6 +19,10 @@ p {
   padding-top: 40px;
 }
 
+.btn:focus {
+  outline: none;
+}
+
 #grid-container {
   margin-top: 56px;
   padding-top: 40px;
@@ -38,6 +42,51 @@ footer {
 	width: 100%;
   	bottom: 0;
   	background-color: rgba(240, 240, 240, 0.4) !important;
+}
+
+.dataTables_filter {
+  color: #434b52 !important;
+  width: 100%;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 15px;
+}
+
+.dataTables_filter label {
+  margin-bottom: 0px;
+  width: 100%
+}
+
+.dataTables_filter input {
+  width: 100%;
+  height: 40px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0px !important;
+  font-size: 1rem;
+  color: #434b52 !important;
+  background-color: rgba(0,0,0,0);
+  border: 1px solid #434b52;
+  border-radius: .25rem;
+  transition: border-color .15s ease-in-out, color .15s ease-in-out;
+}
+
+.dataTables_filter input:focus {
+  width: 100%;
+  height: 40px;
+  padding-left: 10px;
+  margin: 0px !important;
+  font-size: 1rem;
+  color: #919da7 !important;
+  background-color: rgba(0,0,0,0);
+  border: 1px solid #919da7;
+  border-radius: .25rem;
+  outline: none;
+}
+
+.dataTables_info {
+  width: 100%;
+  text-align: center;
 }
 
 #dropdownMenu1 {
@@ -66,12 +115,6 @@ footer {
   z-index: 1000;
 }
 
-#table-container {
-  font-size: 10px;
-  width: 100%;
-  position: relative;
-}
-
 .dataTables_filter {
   color: white !important;
 }
@@ -80,11 +123,17 @@ footer {
   color: white !important;
 }
 
-table.dataTable thead th, table.dataTable thead td {
+.dataTables_wrapper.no-footer .dataTables_scrollBody {
     border-bottom: 1px solid #fff;
 }
 
-.dataTables_wrapper.no-footer .dataTables_scrollBody {
+#table-container {
+  font-size: 10px;
+  width: 100%;
+  position: relative;
+}
+
+table.dataTable thead th, table.dataTable thead td {
     border-bottom: 1px solid #fff;
 }
 
@@ -98,6 +147,7 @@ th.sorting:hover, th.sorting_asc:hover {
 
 /*this is for the row when it's selected*/
 table.dataTable.stripe tbody > tr:hover, table.dataTable.stripe tbody > tr:hover, table.dataTable.display tbody > tr:hover, table.dataTable.display tbody > tr:hover {
+    color: white;
     background-color: #288596 !important;
 }
 
@@ -130,4 +180,28 @@ table.dataTable.display tbody tr.even > .sorting_1, table.dataTable.order-column
 
 table.dataTable.display tbody tr.odd > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd > .sorting_1 {
   background-color: #303438;
+}
+
+table.dataTable thead th, table.dataTable thead td {
+    border-bottom: 1px solid #919da7;
+}
+
+.dataTables_wrapper.no-footer .dataTables_scrollBody {
+    border-bottom: 1px solid #919da7;
+}
+
+.text-secondary {
+  color: #919da7 !important;
+}
+
+.text-secondary .dataTables_info {
+  color: #919da7 !important;
+}
+
+.btn-outline-secondary {
+  color: #919da7 !important;
+}
+
+.btn-outline-secondary:hover {
+  color: white !important;
 }

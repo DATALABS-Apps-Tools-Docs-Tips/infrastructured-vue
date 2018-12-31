@@ -29,9 +29,32 @@
   <body>
 
     <div id="app">
-        <header-component></header-component>
-        <router-view v-bind:json="this.$root.$data.json"></router-view>
-        <data-table v-bind:features="this.$root.$data.json.features"></data-table>
+        <header-component
+          v-bind:categories="categories"
+          v-bind:datasets="datasets"
+          v-bind:current="currentDataset">
+        </header-component>
+        <map-large
+          v-if="mapVisible"
+          v-bind:features="features"
+          v-bind:current="currentDataset"
+          v-bind:datasets="datasets"
+          v-bind:center="mapCenter"
+          v-bind:zoom="mapZoom">
+        </map-large>
+        <map-grid
+          v-if="!mapVisible"
+          v-bind:features="features"
+          v-bind:selected="selectedFeature"
+          v-bind:hovered="hoveredFeature">
+        </map-grid>
+        <!-- <router-view v-bind:features="this.$root.$data.features"></router-view> -->
+        <footer-component
+          v-bind:features="features"
+          v-bind:hovered="hoveredFeature"
+          v-bind:info="hoveredInfo"
+          v-bind:selected="selectedFeature">
+        </footer-component>
     </div>
 
     <!-- development version, includes helpful console warnings -->
@@ -52,6 +75,9 @@
 
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+    <!-- Data Dictionary -->
+    <script src="data/data.js"></script>
 
     <!-- Our Website Javascripts -->
     <script src="js/infrastructured.js"></script>
