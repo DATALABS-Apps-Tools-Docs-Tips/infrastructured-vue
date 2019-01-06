@@ -6,24 +6,23 @@
 // Define a new component called button-counter
 Vue.component('header-component', {
   props: {
+    location: Boolean,
     categories: Array,
     datasets: Object,
     current: String
   },
   template: `
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top px-0">
-   <div class="container-fluid">
-     <a class="navbar-brand" href="#">Infrastructured</a>
-     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsiveTop" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-       <span class="navbar-toggler-icon"></span>
-     </button>
-     <div class="collapse navbar-collapse" id="navbarResponsiveTop">
-       <ul class="navbar-nav ml-auto">
-         <li v-on:click="toggleMap(false)" class="nav-item nav-link">Grid</li>
-         <li v-on:click="toggleMap(true)" class="nav-item nav-link">Map</li>
-       </ul>
-     </div>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+   <a class="navbar-brand" href="#">Infrastructured</a>
+   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsiveTop" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+     <span class="navbar-toggler-icon"></span>
+   </button>
+   <div class="collapse navbar-collapse justify-content-end" id="navbarResponsiveTop">
+     <form class="mr-2">
+      <input class="form-control search" v-bind:class="{'bg-dark':!location}"  @click="byLocation()" type="search" placeholder="enter location" aria-label="Search">
+      </form>
      <dropdown-menu
+       v-bind:location="location"
        v-bind:categories="categories"
        v-bind:datasets="datasets"
        v-bind:current="current">
@@ -34,6 +33,9 @@ Vue.component('header-component', {
   methods: {
     toggleMap(boolean) {
       this.$root.$data.mapVisible = boolean
+    },
+    byLocation() {
+      this.$root.$data.byLocation = true
     }
   }
 }),
@@ -41,19 +43,20 @@ Vue.component('header-component', {
 // Define the dropdown component
 Vue.component('dropdown-menu', {
   props: {
+    location: Boolean,
     categories: Array,
     datasets: Object,
     current: String
   },
   template: `
     <div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <button class="btn dropdown-toggle" v-bind:class="{'btn-outline-secondary':location, 'btn-info':!location}" @click="byType()" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
      {{ current }}
     </button>
     <div class="dropdown-menu  dropdown-menu-right" aria-labelledby="dropdownMenu1">
         <div v-for='(value, key) in categorize'>
           <h6 class="dropdown-header">{{ key }}</h6>
-          <button v-for="dataset in value" v-on:click="chooseData(dataset)" class="dropdown-item" type="button">{{ dataset }}</button>
+          <button v-for="dataset in value" @click="chooseData(dataset)" class="dropdown-item" type="button">{{ dataset }}</button>
         </div>
     </div>
   </div>
@@ -76,8 +79,36 @@ Vue.component('dropdown-menu', {
   methods: {
     chooseData(dataset) {
       // this.$root.clearBox('grid-container')
-      this.current = dataset
+      this.$root.$data.currentDataset = dataset
       this.$root.$data.features = this.$root.loadData(dataset)
+    },
+    byType() {
+      this.$root.$data.byLocation = false
+    }
+  }
+})
+
+Vue.component('sidebar', {
+  props: {
+    'mapVisible': Boolean,
+    'mapIsMoved': Boolean
+  },
+  template:`
+  <div class="navbar-side fixed-top p-0">
+    <button class="btn btn-circle bg-dark text-light" @click="toggleMap(true)" type="button" aria-haspopup="true" aria-expanded="false">M
+    </button>
+    <button class="btn btn-circle bg-dark text-light" @click="toggleMap(false)" type="button" aria-haspopup="true" aria-expanded="false">G
+    </button>
+    <button class="btn btn-circle bg-dark text-light" v-if="mapIsMoved" @click="zoomOut()" type="button" aria-haspopup="true" aria-expanded="false">-
+    </button>
+  </div>
+  `,
+  methods: {
+    toggleMap(boolean) {
+      this.$root.$data.mapVisible = boolean
+    },
+    zoomOut() {
+      this.$root.$emit('updateMap', { lat: 39, lng: -98 }, 4);
     }
   }
 })
@@ -123,7 +154,7 @@ Vue.component('data-table', {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(value, key, index) in features" :key="index">
+          <tr v-for="(value, key, index) in features" :key="index" @mouseover="mouseOver(key)" @mouseout="mouseOut()" @click="clickRow(value)">
             <td v-for="(v, k, ind) in value.properties" :key="ind" class="px-2">{{ v }}</td>
           </tr>
         </tbody>
@@ -141,9 +172,23 @@ Vue.component('data-table', {
       this.table.columns.adjust()
       console.log('table headers adjusted')
     },
-    mouseOver() {
-      this.$root.$data.hoveredFeature = this.index.toString()
+    mouseOver(index) {
+      this.$root.$data.hoveredFeature = index.toString()
     },
+    mouseOut() {
+      this.$root.$data.hoveredFeature = null
+    },
+    clickRow(feature) {
+      if (this.$root.$data.mapVisible == true) {
+        coords = { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] }
+        this.$root.$emit('updateMap', coords, 14);
+      } else {
+        this.$root.loadMap(feature)
+      }
+    },
+    getRowOrder() {
+      this.$root.$data.featureOrder = this.table.rows({ filter : 'applied'})[0]
+    }
   },
   mounted: function () {
     this.table = $('#table').DataTable({
@@ -156,19 +201,21 @@ Vue.component('data-table', {
       }
     })
     console.log('table created')
+
+    console.log(this.table.row(2))
+    // $(#table.rows(1).nodes()).addClass("highlight")
+
     // adjust the header widths when the collapse element is opened
     $(this.$refs.tableCollapse).on('shown.bs.collapse', this.adjustColumns)
 
-    var table = this.table
-    var self = this.$root.$data
+    // get the row order and update root
+    this.getRowOrder()
 
-    // when hover over row display on footer
-    $('#table tbody').on('mouseover', 'tr', function () {
-      self.hoveredFeature = table.row( this ).index().toString()
-    });
-
-    $('#table tbody').on('mouseout', 'tr', function () {
-      self.hoveredFeature = null
+    // listen for row reordering and update row order in root
+    var self = this
+    this.table.on('draw.dt', function() {
+      self.getRowOrder()
+      console.log('table redrawn')
     });
   },
   beforeUpdate: function () {
@@ -188,18 +235,20 @@ Vue.component('data-table', {
 const mapLarge = Vue.component('map-large', {
   props: {
     'features': Array,
+    'order': Array,
     'current': String,
     'datasets': Object,
     'center': Object,
     'zoom': Number
   },
   template: `
-    <div id="map-large" class="map-container">{{ features.length }}</div>
+    <div id="map-large" class="map-container">{{ order.length }}{{ zoom }}</div>
   `,
   data: function () {
     return {
       map: null,
-      markers: []
+      markers: {},
+      localCurrent: null
     }
   },
   methods: {
@@ -223,8 +272,6 @@ const mapLarge = Vue.component('map-large', {
             self.$root.$data.hoveredFeature = null
         });
 
-        var map = this
-
         // zoom in on map when a marker is clicked
         markers[i].on('click', function () {
           self.$root.$data.selectedFeature = this._popup._content
@@ -232,16 +279,21 @@ const mapLarge = Vue.component('map-large', {
         });
 
         this.map.addLayer(markers[i])
+
+        this.markers = markers
       }
+      console.log('markers added')
     },
     removeMarkers() {
-      for(i=0;i<this.markers.length;i++) {
+      for(i in this.markers) {
         this.map.removeLayer(this.markers[i]);
       }
-      this.markers=[]
+      this.markers={}
+      console.log('markers removed')
     }
   },
   mounted: function () {
+
       this.map = this.$root.createMap("map-large", [this.center['lat'],this.center['lng']], this.zoom, true)
       console.log('map created')
 
@@ -254,23 +306,41 @@ const mapLarge = Vue.component('map-large', {
         self.$root.$data.mapCenter = L.latLng(this.getCenter());
         self.$root.$data.mapZoom = this.getZoom();
       });
-  },
-  updated: function () {
-      this.removeMarkers ()
 
+      this.$root.$on('updateMap', function (coords, zoomLevel) {
+        self.map.setView(coords, zoomLevel)
+      })
+
+      this.$root.$on('updateMarkers', function () {
+
+      })
+  },
+  updated: function() {
+    if (this.localCurrent == null) {
+      this.localCurrent = this.current
+
+    } else if (this.localCurrent != this.current) {
+      this.removeMarkers ()
       this.addMarkers (this.features)
-      console.log('markers updated')
+      this.localCurrent = this.current
+
+    } else {
+      this.localCurrent = this.current
+    }
   }
 })
 
 // GRID
 const mapGrid = Vue.component('map-grid', {
-  props: ['features'],
+  props: {
+    'features': Array,
+    'order': Array
+  },
   template:`
     <div class="container">
       <div id="grid-container" class="row text-center text-lg-left pb-5 mb-5">
           <map-cell
-            v-for="i in 50"
+            v-for="i in order"
             v-bind:key="features[i].geometry.coordinates[0]"
             v-bind:feature="features[i]"
             v-bind:index="i">
@@ -282,6 +352,7 @@ const mapGrid = Vue.component('map-grid', {
     }
   },
   mounted: function () {
+    console.log(this.order)
       // as scroll down the page add more map divs
       // $(window).scroll(scrollHandler);
   },
@@ -302,14 +373,12 @@ Vue.component('map-cell', {
   },
   template:`
   <div class="col-lg-3 col-md-4 col-xs-6 p-1">
-    <div v-on:click="loadMap()" v-bind:id="'map_' + index" @mouseover="mouseOver()" @mouseout="mouseOut()" class="d-block" style="padding-top: 100%; cursor: pointer;"></div>
+    <div @click="clickCell(feature)" v-bind:id="'map_' + index" @mouseover="mouseOver()" @mouseout="mouseOut()" class="map-cell d-block"></div>
   </div>
   `,
   methods: {
-    loadMap() {
-      this.$root.$data.mapCenter = { lat: this.feature.geometry.coordinates[1], lng: this.feature.geometry.coordinates[0] }
-      this.$root.$data.mapZoom = 14
-      this.$root.$data.mapVisible = true
+    clickCell(feature) {
+      this.$root.loadMap(feature)
     },
     mouseOver() {
       this.$root.$data.hoveredFeature = this.index.toString()
@@ -335,6 +404,7 @@ const router = new VueRouter({
 const app = new Vue({
   router,
   data: {
+    byLocation: false,
     mapVisible: true,
     mapCenter: { lat: 39, lng: -98 },
     mapZoom: 4,
@@ -342,6 +412,7 @@ const app = new Vue({
     datasets: INFRASTRUCTURED.datasets,
     currentDataset: "Oil Refineries",
     features: {},
+    featureOrder: [],
     hoveredFeature: null,
     selectedFeature: null
   },
@@ -359,6 +430,14 @@ const app = new Vue({
         info.location = ""
       }
       return info
+    },
+    mapIsMoved: function () {
+      if (Math.round(this.mapCenter.lat) == 39 && Math.round(this.mapCenter.lng) == -98 && this.mapZoom == 4) {
+        result = false
+      } else {
+        result = true
+      }
+      return result
     }
   },
   methods: {
@@ -377,6 +456,13 @@ const app = new Vue({
       // Add tile layer for Open Street Map to map object
       L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
       return map
+    },
+
+    // load a large map at a specific data feature
+    loadMap(feature) {
+      this.mapVisible = true
+      this.mapCenter = { lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] }
+      this.mapZoom = 14
     },
 
     // general function that loads data

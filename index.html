@@ -30,13 +30,19 @@
 
     <div id="app">
         <header-component
+          v-bind:location="byLocation"
           v-bind:categories="categories"
           v-bind:datasets="datasets"
           v-bind:current="currentDataset">
         </header-component>
+        <sidebar
+          v-bind:map-visible="mapVisible"
+          v-bind:map-is-moved="mapIsMoved">
+        </sidebar>
         <map-large
           v-if="mapVisible"
           v-bind:features="features"
+          v-bind:order="featureOrder"
           v-bind:current="currentDataset"
           v-bind:datasets="datasets"
           v-bind:center="mapCenter"
@@ -45,8 +51,9 @@
         <map-grid
           v-if="!mapVisible"
           v-bind:features="features"
-          v-bind:selected="selectedFeature"
-          v-bind:hovered="hoveredFeature">
+          v-bind:order="featureOrder"
+          v-bind:hovered="hoveredFeature"
+          v-bind:selected="selectedFeature">
         </map-grid>
         <!-- <router-view v-bind:features="this.$root.$data.features"></router-view> -->
         <footer-component
