@@ -81,7 +81,8 @@ var INFRASTRUCTURED = {
       "stateField": "STATE_CODE"
     },
     "Nuclear": {
-      "url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Environmental_Protection_Agency_EPA_Facility_Registry_Service_FRS_Power_Plants/FeatureServer/0/query?outFields=*&where=ENERGY_SOU%3D%27NUC%27&inSR=3857&outSR=4326&f=geojson",
+      // "url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Environmental_Protection_Agency_EPA_Facility_Registry_Service_FRS_Power_Plants/FeatureServer/0/query?outFields=*&where=ENERGY_SOU%3D%27NUC%27&inSR=3857&outSR=4326&f=geojson",
+      "url": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Environmental_Protection_Agency_EPA_Facility_Registry_Service_FRS_Power_Plants/FeatureServer/0/query?where=ENERGY_SOU%3D%27NUC%27&objectIds=&time=&outFields=*&returnGeometry=true&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=4326&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnDistinctValues=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token=",
       "zoomLevel":14,
       "category": "Energy",
       "nameField": "PRIMARY_NA",

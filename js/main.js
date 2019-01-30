@@ -19,7 +19,7 @@ Vue.component('header-component', {
    </button>
    <div class="collapse navbar-collapse justify-content-end" id="navbarResponsiveTop">
      <form class="mr-2">
-      <input class="form-control search" v-bind:class="{'bg-dark':!location}"  @click="byLocation()" type="search" placeholder="enter location" aria-label="Search">
+      <input class="form-control search" v-bind:class="{'bg-dark':!location}" v-model="locationInput" @keyup.enter="chooseLocation()" type="search" placeholder="enter location" aria-label="Search">
       </form>
      <dropdown-menu
        v-bind:location="location"
@@ -30,12 +30,20 @@ Vue.component('header-component', {
    </div>
   </nav>
   `,
+  data: function () {
+    return {
+      locationInput: ''
+    }
+  },
   methods: {
     toggleMap(boolean) {
       this.$root.$data.mapVisible = boolean
     },
-    byLocation() {
+    chooseLocation() {
+      console.log(this.locationInput)
       this.$root.$data.byLocation = true
+      this.$root.$data.currentDataset = 'Nuclear'
+      this.$root.$data.features = this.$root.loadProximity('Nuclear')
     }
   }
 }),
@@ -80,7 +88,7 @@ Vue.component('dropdown-menu', {
     chooseData(dataset) {
       // this.$root.clearBox('grid-container')
       this.$root.$data.currentDataset = dataset
-      this.$root.$data.features = this.$root.loadData(dataset)
+      this.$root.$data.features = this.$root.loadType(dataset)
     },
     byType() {
       this.$root.$data.byLocation = false
@@ -202,7 +210,6 @@ Vue.component('data-table', {
     })
     console.log('table created')
 
-    console.log(this.table.row(2))
     // $(#table.rows(1).nodes()).addClass("highlight")
 
     // adjust the header widths when the collapse element is opened
@@ -215,6 +222,8 @@ Vue.component('data-table', {
     var self = this
     this.table.on('draw.dt', function() {
       self.getRowOrder()
+
+      self.$root.$emit('updateMarkers');
       console.log('table redrawn')
     });
   },
@@ -254,9 +263,18 @@ const mapLarge = Vue.component('map-large', {
   methods: {
     addMarkers(features) {
       var markers = {}
-      for (i = 0; i < features.length; i++) {
-        var coords = features[i].geometry.coordinates
-        markers[i] = L.marker([coords[1], coords[0]])
+      for (i = 0; i < this.order.length; i++) {
+        var coords = features[this.order[i]].geometry.coordinates
+        markers[i] = L.circleMarker([coords[1], coords[0]], {
+           radius: 6,
+           stroke: true,
+           color: 'white',
+           opacity: 1,
+           weight: 1,
+           fill: true,
+           fillColor: '#17a2b8',
+           fillOpacity: 1
+        })
           // add a popup
           .bindPopup(i.toString())
 
@@ -302,6 +320,12 @@ const mapLarge = Vue.component('map-large', {
 
       var self = this;
 
+      this.map.on('click', function(e) {
+        self.$root.$data.byLocation = true
+        self.$root.$data.currentDataset = 'Nuclear'
+        self.$root.$data.features = self.$root.loadProximity('Nuclear', e.latlng.lat, e.latlng.lng)
+      });
+
       this.map.on('moveend', function(){
         self.$root.$data.mapCenter = L.latLng(this.getCenter());
         self.$root.$data.mapZoom = this.getZoom();
@@ -312,7 +336,8 @@ const mapLarge = Vue.component('map-large', {
       })
 
       this.$root.$on('updateMarkers', function () {
-
+        self.removeMarkers ()
+        self.addMarkers(self.features)
       })
   },
   updated: function() {
@@ -455,6 +480,9 @@ const app = new Vue({
       });
       // Add tile layer for Open Street Map to map object
       L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+
+      L.tileLayer('https://api.mapbox.com/styles/v1/dcharvey/cjr5vba8c18q12srycjduvwih/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiZGNoYXJ2ZXkiLCJhIjoiY2ltemVpNjY1MDRlanVya2szYzlnM2dxcyJ9.im9EDlP7YIYefEt_wz2fww').addTo(map);
+
       return map
     },
 
@@ -466,19 +494,17 @@ const app = new Vue({
     },
 
     // general function that loads data
-    loadData(datasetName) {
+    loadData(url) {
       console.log("starting json load")
 
       var features;
-
-      var my_url = this.datasets[datasetName].url
 
       features = (function () {
         var json = null;
         $.ajax({
           'async': false,
           'global': false,
-          'url': my_url,
+          'url': url,
           'dataType': "json",
           'success': function (data) {
               json = data;
@@ -489,10 +515,38 @@ const app = new Vue({
       })();
       console.log("json loaded")
       return features
+    },
+
+    loadType(datasetName) {
+      var url = this.datasets[datasetName].url
+
+      return this.loadData(url)
+    },
+
+    // this function will load all features within a certain proximity
+    loadProximity(datasetName, lat, lng) {
+
+      lat = Math.round(lat * 1000) / 1000
+      lng = Math.round(lng * 1000) / 1000
+      console.log(lng.toString() + ', ' + lat.toString())
+
+      var buffer = '&geometry=' + lng.toString() + '%2C' + lat.toString() + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&resultType=none&distance=1000000&units=esriSRUnit_Meter&returnGeodetic=false'
+
+      var url = this.datasets[datasetName].url + buffer
+
+      return this.loadData(url)
     }
   },
   created: function () {
-    this.features = this.loadData(this.currentDataset)
+    this.features = this.loadType(this.currentDataset)
+
+    var order = []
+
+    for (i=0; i<this.features.length; i++) {
+      order.push(i)
+    }
+
+    this.featureOrder = order
   }
 }).$mount('#app')
 
